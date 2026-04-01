@@ -1,13 +1,55 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  snippets  Snippet[]
+
+  @@map("users")
+}
+
+model Snippet {
+  id          String       @id @default(uuid())
+  userId      String       @map("user_id")
+  title       String
+  description String?
+  code        String
+  language    String
+  isFavorite  Boolean      @default(false) @map("is_favorite")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags        SnippetTag[]
+
+  @@map("snippets")
+}
+
+model Tag {
+  id        String       @id @default(uuid())
+  name      String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+  snippets  SnippetTag[]
+
+  @@map("tags")
+}
+
+model SnippetTag {
+  snippetId String  @map("snippet_id")
+  tagId     String  @map("tag_id")
+  snippet   Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([snippetId, tagId])
+  @@map("snippet_tags")
 }
