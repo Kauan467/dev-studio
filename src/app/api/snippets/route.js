@@ -52,3 +52,58 @@ export async function POST(request) {
     );
   }
 }
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+
+    const search = searchParams.get("search");
+    const language = searchParams.get("language");
+    const tag = searchParams.get("tag");
+
+    const where = {};
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (language) {
+      where.language = language.toLowerCase();
+    }
+
+    if (tag) {
+      where.tags = {
+        some: {
+          tag: {
+            name: tag.toLowerCase(),
+          },
+        },
+      };
+    }
+
+    const snippets = await prisma.snippet.findMany({
+      where,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return NextResponse.json(snippets);
+  } catch (error) {
+    console.error("Erro ao listar snippets:", error);
+    return NextResponse.json(
+      { error: "Erro interno do servidor" },
+      { status: 500 }
+    );
+  }
+}
