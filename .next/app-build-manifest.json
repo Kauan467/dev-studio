@@ -1,14 +1,9 @@
 {
   "pages": {
-    "/api/snippets/route": [
+    "/api/auth/register/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/snippets/route.js"
-    ],
-    "/api/snippets/[id]/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/snippets/[id]/route.js"
+      "static/chunks/app/api/auth/register/route.js"
     ]
   }
 }

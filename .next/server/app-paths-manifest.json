@@ -1,4 +1,3 @@
 {
-  "/api/snippets/route": "app/api/snippets/route.js",
-  "/api/snippets/[id]/route": "app/api/snippets/[id]/route.js"
+  "/api/auth/register/route": "app/api/auth/register/route.js"
 }
