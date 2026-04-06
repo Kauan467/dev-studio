@@ -1,8 +1,18 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/getSession";
 
 export async function POST(request) {
   try {
+    const { error, session } = await requireAuth();
+
+    if (error) {
+      return NextResponse.json(
+        { error: "Você precisa estar logado para criar snippets" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
 
     const { title, description, code, language, tags } = body;
@@ -20,7 +30,7 @@ export async function POST(request) {
         description: description || null,
         code,
         language: language.toLowerCase(),
-        userId: "4e33098b-62dd-4fa6-b618-1e82ff1342f6",
+        userId: session.user.id,
         tags: {
           create: tags
             ? tags.map((tagName) => ({
@@ -55,13 +65,24 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
+    const { error, session } = await requireAuth();
+
+    if (error) {
+      return NextResponse.json(
+        { error: "Você precisa estar logado" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
 
     const search = searchParams.get("search");
     const language = searchParams.get("language");
     const tag = searchParams.get("tag");
 
-    const where = {};
+    const where = {
+      userId: session.user.id,
+    };
 
     if (search) {
       where.OR = [

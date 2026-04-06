@@ -1,9 +1,19 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireAuth } from "@/lib/getSession";
 
-//  /api/snippets/[id] - buscar um snippet específico
+// GET /api/snippets/[id]
 export async function GET(request, { params }) {
   try {
+    const { error, session } = await requireAuth();
+
+    if (error) {
+      return NextResponse.json(
+        { error: "Você precisa estar logado" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
     const snippet = await prisma.snippet.findUnique({
@@ -24,6 +34,13 @@ export async function GET(request, { params }) {
       );
     }
 
+    if (snippet.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Você não tem permissão para acessar este snippet" },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json(snippet);
   } catch (error) {
     console.error("Erro ao buscar snippet:", error);
@@ -34,12 +51,20 @@ export async function GET(request, { params }) {
   }
 }
 
-//  /api/snippets/[id] - editar um snippet
+// PUT /api/snippets/[id]
 export async function PUT(request, { params }) {
   try {
+    const { error, session } = await requireAuth();
+
+    if (error) {
+      return NextResponse.json(
+        { error: "Você precisa estar logado" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
-
     const { title, description, code, language, tags } = body;
 
     const existing = await prisma.snippet.findUnique({
@@ -53,7 +78,13 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // remove as tags antigas antes de adicionar as novas
+    if (existing.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Você não tem permissão para editar este snippet" },
+        { status: 403 }
+      );
+    }
+
     await prisma.snippetTag.deleteMany({
       where: { snippetId: id },
     });
@@ -97,9 +128,18 @@ export async function PUT(request, { params }) {
   }
 }
 
-//  /api/snippets/[id] - deletar um snippet
+// DELETE /api/snippets/[id]
 export async function DELETE(request, { params }) {
   try {
+    const { error, session } = await requireAuth();
+
+    if (error) {
+      return NextResponse.json(
+        { error: "Você precisa estar logado" },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
     const existing = await prisma.snippet.findUnique({
@@ -110,6 +150,13 @@ export async function DELETE(request, { params }) {
       return NextResponse.json(
         { error: "Snippet não encontrado" },
         { status: 404 }
+      );
+    }
+
+    if (existing.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Você não tem permissão para deletar este snippet" },
+        { status: 403 }
       );
     }
 
