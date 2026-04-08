@@ -2,7 +2,7 @@
   "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/api/snippets/route": "app/api/snippets/route.js",
   "/api/snippets/[id]/route": "app/api/snippets/[id]/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/new/page": "app/dashboard/new/page.js"
 }
