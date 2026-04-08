@@ -2,43 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import Link from "next/link";
 
-export default function DashboardPage() {
-  const { data: session } = useSession();
-  const [snippets, setSnippets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [activeLanguage, setActiveLanguage] = useState(null);
-
-  async function fetchSnippets() {
-    setLoading(true);
-
-    let url = "/api/snippets?";
-    if (search) url += `search=${search}&`;
-    if (activeLanguage) url += `language=${activeLanguage}&`;
-
-    const res = await fetch(url);
-    const data = await res.json();
-
-    if (res.ok) {
-      setSnippets(data);
-    }
-
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    fetchSnippets();
-  }, [activeLanguage]);
-
-  function handleSearch(e) {
-    e.preventDefault();
-    fetchSnippets();
-  }
-
-  function getLanguageColor(language) {
+function getLanguageColor(language) {
   const colors = {
     javascript: "bg-amber-100 text-amber-800",
     typescript: "bg-blue-100 text-blue-800",
@@ -83,11 +51,77 @@ export default function DashboardPage() {
   return colors[language] || "bg-gray-100 text-gray-800";
 }
 
+export default function DashboardPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [snippets, setSnippets] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [activeLanguage, setActiveLanguage] = useState(null);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  async function fetchSnippets() {
+    setLoading(true);
+
+    let url = "/api/snippets?";
+    if (search) url += `search=${search}&`;
+    if (activeLanguage) url += `language=${activeLanguage}&`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (res.ok) {
+      setSnippets(data);
+    }
+
+    setLoading(false);
+  }
+
+  async function fetchLanguages() {
+    const res = await fetch("/api/snippets/languages");
+    const data = await res.json();
+
+    if (res.ok) {
+      setLanguages(data);
+    }
+  }
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchSnippets();
+      fetchLanguages();
+    }
+  }, [activeLanguage, status]);
+
+  function handleSearch(e) {
+    e.preventDefault();
+    fetchSnippets();
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-sm text-gray-400">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return null;
+  }
+
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar
         onFilterLanguage={setActiveLanguage}
         activeLanguage={activeLanguage}
+        languages={languages}
       />
 
       <main className="flex-1 ml-56">
