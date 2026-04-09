@@ -35,27 +35,32 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-[#0d1117]">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dev Studio</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-[#e6edf3]">Dev Studio</h1>
+          <p className="text-sm text-[#484f58] mt-1">
             Crie sua conta
           </p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-6">Cadastro</h2>
+        <div className="bg-[#161b22] rounded-xl border border-[#21262d] p-6">
+          <h2 className="text-lg font-semibold text-[#e6edf3] mb-6">Cadastro</h2>
 
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-4">
+            <div className="bg-[#2d0c0c] border border-[#f7816633] text-[#f78166] text-sm px-4 py-3 rounded-lg mb-4">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#8b949e] mb-1">
                 Nome
               </label>
               <input
@@ -63,12 +68,12 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#8b949e] mb-1">
                 Email
               </label>
               <input
@@ -76,12 +81,12 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-[#8b949e] mb-1">
                 Senha
               </label>
               <input
@@ -90,9 +95,9 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
               />
-              <p className="text-xs text-gray-400 mt-1">Mínimo 6 caracteres</p>
+              <p className="text-xs text-[#484f58] mt-1">Mínimo 6 caracteres</p>
             </div>
 
             <button
@@ -105,9 +110,9 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-[#484f58] mt-4">
           Já tem conta?{" "}
-          <Link href="/login" className="text-purple-600 hover:underline">
+          <Link href="/login" className="text-[#d2a8ff] hover:underline">
             Entrar
           </Link>
         </p>

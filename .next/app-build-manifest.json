@@ -35,6 +35,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/new/page.js"
+    ],
+    "/api/snippets/languages/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/snippets/languages/route.js"
     ]
   }
 }

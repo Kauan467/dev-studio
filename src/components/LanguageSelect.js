@@ -11,7 +11,7 @@ const languageGroups = [
       { name: "HTML", value: "html", ext: ".html", color: "bg-orange-400" },
       { name: "CSS", value: "css", ext: ".css", color: "bg-blue-500" },
       { name: "React", value: "react", ext: ".jsx", color: "bg-cyan-400" },
-      { name: "Next.js", value: "nextjs", ext: ".tsx", color: "bg-gray-500" },
+      { name: "Next.js", value: "nextjs", ext: ".tsx", color: "bg-gray-400" },
       { name: "Vue", value: "vue", ext: ".vue", color: "bg-emerald-400" },
       { name: "Tailwind", value: "tailwind", ext: ".css", color: "bg-cyan-500" },
       { name: "Svelte", value: "svelte", ext: ".svelte", color: "bg-orange-500" },
@@ -20,7 +20,7 @@ const languageGroups = [
   {
     label: "BACKEND",
     languages: [
-      { name: "Python", value: "python", ext: ".py", color: "bg-blue-400" },
+      { name: "Python", value: "python", ext: ".py", color: "bg-teal-400" },
       { name: "Java", value: "java", ext: ".java", color: "bg-orange-400" },
       { name: "Go", value: "go", ext: ".go", color: "bg-cyan-400" },
       { name: "Rust", value: "rust", ext: ".rs", color: "bg-orange-500" },
@@ -58,7 +58,11 @@ const languageGroups = [
 
 const allLanguages = languageGroups.flatMap((g) => g.languages);
 
-export default function LanguageSelect({ value, onChange }) {
+function getLangInfo(value) {
+  return allLanguages.find((l) => l.value === value);
+}
+
+export default function LanguageSelect({ values = [], onChange }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const ref = useRef(null);
@@ -80,92 +84,133 @@ export default function LanguageSelect({ value, onChange }) {
     }
   }, [open]);
 
-  const selected = allLanguages.find((l) => l.value === value);
+  function addLanguage(lang) {
+    if (!values.includes(lang)) {
+      onChange([...values, lang]);
+    }
+    setOpen(false);
+    setSearch("");
+  }
+
+  function removeLanguage(lang) {
+    onChange(values.filter((v) => v !== lang));
+  }
 
   const filtered = languageGroups
     .map((group) => ({
       ...group,
-      languages: group.languages.filter((l) =>
-        l.name.toLowerCase().includes(search.toLowerCase()) ||
-        l.value.includes(search.toLowerCase())
+      languages: group.languages.filter(
+        (l) =>
+          !values.includes(l.value) &&
+          (l.name.toLowerCase().includes(search.toLowerCase()) ||
+            l.value.includes(search.toLowerCase()))
       ),
     }))
     .filter((group) => group.languages.length > 0);
 
-  const isCustom = search.trim() && !allLanguages.some(
-    (l) => l.value === search.trim().toLowerCase() || l.name.toLowerCase() === search.trim().toLowerCase()
-  );
+  const isCustom =
+    search.trim() &&
+    !allLanguages.some(
+      (l) =>
+        l.value === search.trim().toLowerCase() ||
+        l.name.toLowerCase() === search.trim().toLowerCase()
+    ) &&
+    !values.includes(search.trim().toLowerCase());
 
   return (
     <div className="relative" ref={ref}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
         Linguagem
       </label>
+
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {values.map((val) => {
+            const info = getLangInfo(val);
+            return (
+              <span
+                key={val}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#1f1d2e] border border-[#d2a8ff44] text-[#d2a8ff] text-xs rounded-lg"
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    info ? info.color : "bg-purple-400"
+                  }`}
+                ></span>
+                {info ? info.name : val}
+                <button
+                  type="button"
+                  onClick={() => removeLanguage(val)}
+                  className="text-[#d2a8ff88] hover:text-[#d2a8ff] ml-0.5"
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
+        className="w-full flex items-center justify-between px-3 py-2.5 border border-[#30363d] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent bg-[#0d1117] text-[#e6edf3]"
       >
-        {selected ? (
-          <div className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${selected.color}`}></span>
-            <span>{selected.name}</span>
-          </div>
-        ) : value ? (
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-            <span>{value}</span>
-          </div>
-        ) : (
-          <span className="text-gray-400">Selecione a linguagem</span>
-        )}
+        <span className="text-[#6e7681]">
+          {values.length === 0
+            ? "Selecione a linguagem"
+            : "Adicionar outra linguagem"}
+        </span>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-[#6e7681] transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-          <div className="p-2 border-b border-gray-100">
+        <div className="absolute z-20 w-full mt-1 bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden">
+          <div className="p-2 border-b border-[#21262d]">
             <input
               ref={searchRef}
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar linguagem..."
-              className="w-full px-3 py-1.5 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-3 py-1.5 border border-[#30363d] rounded-md text-sm bg-[#0d1117] text-[#e6edf3] placeholder-[#6e7681] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
             />
           </div>
 
           <div className="max-h-64 overflow-y-auto">
             {filtered.map((group) => (
               <div key={group.label}>
-                <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-400 tracking-wide">
+                <p className="px-3 pt-3 pb-1 text-[10px] font-semibold text-[#6e7681] tracking-wider">
                   {group.label}
                 </p>
                 {group.languages.map((lang) => (
                   <button
                     key={lang.value}
                     type="button"
-                    onClick={() => {
-                      onChange(lang.value);
-                      setOpen(false);
-                      setSearch("");
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-purple-50 ${
-                      value === lang.value ? "bg-purple-50 text-purple-700" : "text-gray-700"
-                    }`}
+                    onClick={() => addLanguage(lang.value)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm text-[#c9d1d9] hover:bg-[#1f1d2e] hover:text-[#d2a8ff]"
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${lang.color}`}></span>
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full ${lang.color}`}
+                      ></span>
                       <span>{lang.name}</span>
                     </div>
-                    <span className="text-xs text-gray-400">{lang.ext}</span>
+                    <span className="text-xs text-[#6e7681]">{lang.ext}</span>
                   </button>
                 ))}
               </div>
@@ -173,26 +218,22 @@ export default function LanguageSelect({ value, onChange }) {
 
             {isCustom && (
               <div>
-                <p className="px-3 pt-3 pb-1 text-xs font-medium text-gray-400 tracking-wide">
+                <p className="px-3 pt-3 pb-1 text-[10px] font-semibold text-[#6e7681] tracking-wider">
                   PERSONALIZADA
                 </p>
                 <button
                   type="button"
-                  onClick={() => {
-                    onChange(search.trim().toLowerCase());
-                    setOpen(false);
-                    setSearch("");
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-purple-50"
+                  onClick={() => addLanguage(search.trim().toLowerCase())}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#c9d1d9] hover:bg-[#1f1d2e] hover:text-[#d2a8ff]"
                 >
                   <span className="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-                  <span>Adicionar "{search.trim()}"</span>
+                  <span>Adicionar &quot;{search.trim()}&quot;</span>
                 </button>
               </div>
             )}
 
             {filtered.length === 0 && !isCustom && (
-              <p className="px-3 py-4 text-sm text-gray-400 text-center">
+              <p className="px-3 py-4 text-sm text-[#6e7681] text-center">
                 Nenhuma linguagem encontrada
               </p>
             )}

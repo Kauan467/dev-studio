@@ -4,84 +4,97 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
 const languageColors = {
-  javascript: "bg-amber-100 border-amber-400",
-  typescript: "bg-blue-100 border-blue-400",
-  python: "bg-teal-100 border-teal-400",
-  java: "bg-red-100 border-red-400",
-  sql: "bg-blue-100 border-blue-400",
-  react: "bg-purple-100 border-purple-400",
-  bash: "bg-gray-100 border-gray-400",
-  html: "bg-orange-100 border-orange-400",
-  css: "bg-blue-100 border-blue-400",
-  nodejs: "bg-green-100 border-green-400",
-  nextjs: "bg-gray-100 border-gray-400",
-  php: "bg-indigo-100 border-indigo-400",
-  docker: "bg-sky-100 border-sky-400",
-  prisma: "bg-indigo-100 border-indigo-400",
+  javascript: "bg-amber-400",
+  typescript: "bg-blue-400",
+  python: "bg-teal-400",
+  java: "bg-red-400",
+  sql: "bg-blue-500",
+  react: "bg-cyan-400",
+  bash: "bg-gray-400",
+  html: "bg-orange-400",
+  css: "bg-blue-400",
+  nodejs: "bg-green-400",
+  nextjs: "bg-gray-500",
+  php: "bg-indigo-400",
+  docker: "bg-sky-400",
+  prisma: "bg-indigo-400",
+  go: "bg-cyan-400",
+  rust: "bg-orange-500",
+  ruby: "bg-red-400",
+  csharp: "bg-purple-400",
+  vue: "bg-emerald-400",
+  json: "bg-lime-400",
+  yaml: "bg-rose-400",
+  markdown: "bg-gray-400",
+  graphql: "bg-pink-400",
+  tailwind: "bg-cyan-500",
 };
 
 function getColor(language) {
-  return languageColors[language] || "bg-gray-100 border-gray-400";
+  return languageColors[language] || "bg-purple-400";
 }
 
 export default function Sidebar({ onFilterLanguage, activeLanguage, languages }) {
   const { data: session } = useSession();
 
   return (
-    <aside className="w-56 border-r border-gray-200 bg-white h-screen flex flex-col fixed left-0 top-0">
-      <div className="px-4 py-4 border-b border-gray-200">
+    <aside className="w-56 bg-[#010409] border-r border-[#21262d] h-screen flex flex-col fixed left-0 top-0">
+      <div className="px-4 py-4 border-b border-[#21262d]">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <span className="text-base font-bold text-gray-900">Dev Studio</span>
+          <div className="w-7 h-7 bg-purple-600 rounded-lg flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+          </div>
+          <span className="text-sm font-bold text-white">Dev Studio</span>
         </Link>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
         <button
           onClick={() => onFilterLanguage(null)}
-          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+          className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
             activeLanguage === null
-              ? "bg-purple-50 text-purple-700 font-medium"
-              : "text-gray-600 hover:bg-gray-50"
+              ? "bg-[#1f1d2e] text-[#d2a8ff] font-medium"
+              : "text-[#8b949e] hover:bg-[#161b22]"
           }`}
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 10h16M4 14h16M4 18h16"
-            />
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
           Todos os snippets
         </button>
 
+        <Link
+          href="/dashboard/new"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#d2a8ff] hover:bg-[#1f1d2e] transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Novo snippet
+        </Link>
+
         {languages.length > 0 && (
-          <div className="pt-4">
-            <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">
+          <div className="pt-3">
+            <p className="px-3 text-[10px] font-semibold text-[#484f58] uppercase tracking-wider mb-2">
               Linguagens
             </p>
             {languages.map((lang) => (
               <button
                 key={lang.language}
                 onClick={() => onFilterLanguage(lang.language)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
                   activeLanguage === lang.language
-                    ? "bg-purple-50 text-purple-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-[#1f1d2e] text-[#d2a8ff] font-medium"
+                    : "text-[#8b949e] hover:bg-[#161b22]"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`w-2 h-2 rounded-full border ${getColor(lang.language)}`}
-                  ></span>
+                  <span className={`w-2 h-2 rounded-full ${getColor(lang.language)}`}></span>
                   {lang.language}
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="text-[10px] text-[#484f58] bg-[#21262d] px-1.5 py-0.5 rounded-full">
                   {lang._count.language}
                 </span>
               </button>
@@ -90,33 +103,28 @@ export default function Sidebar({ onFilterLanguage, activeLanguage, languages })
         )}
       </nav>
 
-      <div className="px-3 py-4 border-t border-gray-200">
+      <div className="px-3 py-3 border-t border-[#21262d]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-xs font-medium text-purple-700">
+            <div className="w-7 h-7 rounded-full bg-[#1f1d2e] flex items-center justify-center text-xs font-bold text-[#d2a8ff]">
               {session?.user?.name?.charAt(0).toUpperCase() || "?"}
             </div>
-            <span className="text-sm text-gray-700">
-              {session?.user?.name || "Usuário"}
-            </span>
+            <div>
+              <p className="text-xs font-medium text-[#e6edf3] leading-tight">
+                {session?.user?.name || "Usuário"}
+              </p>
+              <p className="text-[10px] text-[#484f58] leading-tight">
+                {session?.user?.email || ""}
+              </p>
+            </div>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-[#484f58] hover:text-red-400 transition-colors"
             title="Sair"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           </button>
         </div>

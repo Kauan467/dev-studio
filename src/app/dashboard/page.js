@@ -1,219 +1,202 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/Sidebar";
 import Link from "next/link";
+import LanguageSelect from "@/components/LanguageSelect";
 
-function getLanguageColor(language) {
-  const colors = {
-    javascript: "bg-amber-100 text-amber-800",
-    typescript: "bg-blue-100 text-blue-800",
-    python: "bg-teal-100 text-teal-800",
-    java: "bg-red-100 text-red-800",
-    csharp: "bg-purple-100 text-purple-800",
-    cpp: "bg-pink-100 text-pink-800",
-    c: "bg-gray-100 text-gray-800",
-    go: "bg-cyan-100 text-cyan-800",
-    rust: "bg-orange-100 text-orange-800",
-    ruby: "bg-red-100 text-red-800",
-    php: "bg-indigo-100 text-indigo-800",
-    swift: "bg-orange-100 text-orange-800",
-    kotlin: "bg-violet-100 text-violet-800",
-    dart: "bg-sky-100 text-sky-800",
-    sql: "bg-blue-100 text-blue-800",
-    postgresql: "bg-blue-100 text-blue-800",
-    mysql: "bg-amber-100 text-amber-800",
-    mongodb: "bg-green-100 text-green-800",
-    html: "bg-orange-100 text-orange-800",
-    css: "bg-blue-100 text-blue-800",
-    sass: "bg-pink-100 text-pink-800",
-    react: "bg-cyan-100 text-cyan-800",
-    nextjs: "bg-gray-100 text-gray-800",
-    vue: "bg-emerald-100 text-emerald-800",
-    angular: "bg-red-100 text-red-800",
-    svelte: "bg-orange-100 text-orange-800",
-    nodejs: "bg-green-100 text-green-800",
-    express: "bg-gray-100 text-gray-800",
-    bash: "bg-gray-100 text-gray-800",
-    shell: "bg-gray-100 text-gray-800",
-    powershell: "bg-blue-100 text-blue-800",
-    docker: "bg-sky-100 text-sky-800",
-    yaml: "bg-rose-100 text-rose-800",
-    json: "bg-lime-100 text-lime-800",
-    markdown: "bg-gray-100 text-gray-800",
-    git: "bg-orange-100 text-orange-800",
-    prisma: "bg-indigo-100 text-indigo-800",
-    graphql: "bg-pink-100 text-pink-800",
-    tailwind: "bg-cyan-100 text-cyan-800",
-  };
-  return colors[language] || "bg-gray-100 text-gray-800";
-}
-
-export default function DashboardPage() {
-  const { data: session, status } = useSession();
+export default function NewSnippetPage() {
+  const { status } = useSession();
   const router = useRouter();
-  const [snippets, setSnippets] = useState([]);
-  const [languages, setLanguages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [activeLanguage, setActiveLanguage] = useState(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [code, setCode] = useState("");
+  const [language, setLanguage] = useState("");
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
+  function handleAddTag(e) {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      const newTag = tagInput.trim().toLowerCase();
+
+      if (newTag && !tags.includes(newTag)) {
+        setTags([...tags, newTag]);
+      }
+
+      setTagInput("");
     }
-  }, [status, router]);
+  }
 
-  async function fetchSnippets() {
+  function handleRemoveTag(tagToRemove) {
+    setTags(tags.filter((t) => t !== tagToRemove));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+
+    if (!title || !code || !language) {
+      setError("Título, código e linguagem são obrigatórios");
+      return;
+    }
+
     setLoading(true);
 
-    let url = "/api/snippets?";
-    if (search) url += `search=${search}&`;
-    if (activeLanguage) url += `language=${activeLanguage}&`;
+    try {
+      const res = await fetch("/api/snippets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description: description || null,
+          code,
+          language: language.toLowerCase(),
+          tags: tags.length > 0 ? tags : null,
+        }),
+      });
 
-    const res = await fetch(url);
-    const data = await res.json();
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || "Erro ao criar snippet");
+        setLoading(false);
+        return;
+      }
 
-    if (res.ok) {
-      setSnippets(data);
+      router.push("/dashboard");
+    } catch (err) {
+      setError("Erro de conexão com o servidor");
+      setLoading(false);
     }
-
-    setLoading(false);
-  }
-
-  async function fetchLanguages() {
-    const res = await fetch("/api/snippets/languages");
-    const data = await res.json();
-
-    if (res.ok) {
-      setLanguages(data);
-    }
-  }
-
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchSnippets();
-      fetchLanguages();
-    }
-  }, [activeLanguage, status]);
-
-  function handleSearch(e) {
-    e.preventDefault();
-    fetchSnippets();
   }
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-sm text-gray-400">Carregando...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#0d1117]">
+        <div className="w-6 h-6 border-2 border-[#21262d] border-t-[#d2a8ff] rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  if (status === "unauthenticated") {
-    return null;
-  }
-
   return (
-    <div className="flex min-h-screen bg-white">
-      <Sidebar
-        onFilterLanguage={setActiveLanguage}
-        activeLanguage={activeLanguage}
-        languages={languages}
-      />
-
-      <main className="flex-1 ml-56">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Meus snippets
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                {snippets.length} snippet{snippets.length !== 1 ? "s" : ""}
-                {activeLanguage ? ` em ${activeLanguage}` : ""}
-              </p>
-            </div>
-            <Link
-              href="/dashboard/new"
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
-            >
-              + Novo snippet
-            </Link>
+    <div className="min-h-screen bg-[#0d1117]">
+      <div className="max-w-2xl mx-auto px-6 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-xl font-bold text-[#e6edf3]">Novo snippet</h1>
+            <p className="text-sm text-[#484f58] mt-1">
+              Salve um trecho de código para consultar depois
+            </p>
           </div>
+          <Link
+            href="/dashboard"
+            className="text-sm text-[#484f58] hover:text-[#8b949e] transition-colors"
+          >
+            Cancelar
+          </Link>
+        </div>
 
-          <form onSubmit={handleSearch} className="mb-6">
+        {error && (
+          <div className="bg-[#2d0c0c] border border-[#f7816633] text-[#f78166] text-sm px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-[#8b949e] mb-1">
+              Título
+            </label>
             <input
               type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por título ou descrição..."
-              className="w-full max-w-md px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
             />
-          </form>
+          </div>
 
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-sm text-gray-400">Carregando...</p>
-            </div>
-          ) : snippets.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-400 mb-2">Nenhum snippet encontrado</p>
-              <Link
-                href="/dashboard/new"
-                className="text-purple-600 text-sm hover:underline"
-              >
-                Criar seu primeiro snippet
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {snippets.map((snippet) => (
-                <Link
-                  key={snippet.id}
-                  href={`/dashboard/${snippet.id}`}
-                  className="block bg-gray-50 rounded-lg p-4 border border-gray-100 hover:border-purple-200 transition-colors"
+          <div>
+            <label className="block text-sm font-medium text-[#8b949e] mb-1">
+              Descrição{" "}
+              <span className="text-[#484f58] font-normal">(opcional)</span>
+            </label>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
+            />
+          </div>
+
+          <LanguageSelect value={language} onChange={setLanguage} />
+
+          <div>
+            <label className="block text-sm font-medium text-[#8b949e] mb-1">
+              Código
+            </label>
+            <textarea
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+              rows={10}
+              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] font-mono focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent resize-y"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#8b949e] mb-1">
+              Tags{" "}
+              <span className="text-[#484f58] font-normal">
+                (pressione Enter para adicionar)
+              </span>
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 px-2 py-1 bg-[#1f1d2e] border border-[#d2a8ff44] text-[#d2a8ff] text-xs rounded-lg"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span
-                      className={`text-xs px-2 py-1 rounded font-medium ${getLanguageColor(
-                        snippet.language
-                      )}`}
-                    >
-                      {snippet.language}
-                    </span>
-                  </div>
-                  <h3 className="font-medium text-sm text-gray-900 mb-1">
-                    {snippet.title}
-                  </h3>
-                  {snippet.description && (
-                    <p className="text-xs text-gray-500 mb-3">
-                      {snippet.description}
-                    </p>
-                  )}
-                  <pre className="bg-white rounded p-3 text-xs text-gray-600 font-mono overflow-hidden max-h-20 border border-gray-100">
-                    {snippet.code}
-                  </pre>
-                  {snippet.tags?.length > 0 && (
-                    <div className="flex gap-1 mt-3 flex-wrap">
-                      {snippet.tags.map((st) => (
-                        <span
-                          key={st.tag.id}
-                          className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-500"
-                        >
-                          {st.tag.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </Link>
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="text-[#d2a8ff88] hover:text-[#d2a8ff]"
+                  >
+                    ×
+                  </button>
+                </span>
               ))}
             </div>
-          )}
-        </div>
-      </main>
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleAddTag}
+              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? "Salvando..." : "Salvar snippet"}
+            </button>
+            <Link
+              href="/dashboard"
+              className="px-6 py-2 rounded-lg text-sm text-[#8b949e] border border-[#21262d] hover:bg-[#161b22] transition-colors"
+            >
+              Cancelar
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
