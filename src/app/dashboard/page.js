@@ -1,76 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import LanguageSelect from "@/components/LanguageSelect";
+import Sidebar from "@/components/Sidebar";
+import CodeBlock from "@/components/CodeBlock";
 
-export default function NewSnippetPage() {
+export default function DashboardPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("");
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [snippets, setSnippets] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [activeLanguage, setActiveLanguage] = useState(null);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  function handleAddTag(e) {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      const newTag = tagInput.trim().toLowerCase();
-
-      if (newTag && !tags.includes(newTag)) {
-        setTags([...tags, newTag]);
-      }
-
-      setTagInput("");
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
     }
-  }
+  }, [status, router]);
 
-  function handleRemoveTag(tagToRemove) {
-    setTags(tags.filter((t) => t !== tagToRemove));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-
-    if (!title || !code || !language) {
-      setError("Título, código e linguagem são obrigatórios");
-      return;
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchSnippets();
+      fetchLanguages();
     }
+  }, [status, activeLanguage, search]);
 
+  async function fetchSnippets() {
     setLoading(true);
+    const params = new URLSearchParams();
+    if (activeLanguage) params.set("language", activeLanguage);
+    if (search) params.set("search", search);
 
     try {
-      const res = await fetch("/api/snippets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description: description || null,
-          code,
-          language: language.toLowerCase(),
-          tags: tags.length > 0 ? tags : null,
-        }),
-      });
-
-      if (!res.ok) {
+      const res = await fetch(`/api/snippets?${params.toString()}`);
+      if (res.ok) {
         const data = await res.json();
-        setError(data.error || "Erro ao criar snippet");
-        setLoading(false);
-        return;
+        setSnippets(data);
       }
-
-      router.push("/dashboard");
     } catch (err) {
-      setError("Erro de conexão com o servidor");
+      console.error("Erro ao buscar snippets:", err);
+    } finally {
       setLoading(false);
     }
+  }
+
+  async function fetchLanguages() {
+    try {
+      const res = await fetch("/api/snippets/languages");
+      if (res.ok) {
+        const data = await res.json();
+        setLanguages(data);
+      }
+    } catch (err) {
+      console.error("Erro ao buscar linguagens:", err);
+    }
+  }
+
+  function handleFilterLanguage(lang) {
+    setActiveLanguage(lang);
+  }
+
+  function handleReorderLanguages(reordered) {
+    setLanguages(reordered);
   }
 
   if (status === "loading") {
@@ -83,120 +78,117 @@ export default function NewSnippetPage() {
 
   return (
     <div className="min-h-screen bg-[#0d1117]">
-      <div className="max-w-2xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-bold text-[#e6edf3]">Novo snippet</h1>
-            <p className="text-sm text-[#484f58] mt-1">
-              Salve um trecho de código para consultar depois
-            </p>
-          </div>
-          <Link
-            href="/dashboard"
-            className="text-sm text-[#484f58] hover:text-[#8b949e] transition-colors"
-          >
-            Cancelar
-          </Link>
-        </div>
+      <Sidebar
+        onFilterLanguage={handleFilterLanguage}
+        activeLanguage={activeLanguage}
+        languages={languages}
+        onReorderLanguages={handleReorderLanguages}
+      />
 
-        {error && (
-          <div className="bg-[#2d0c0c] border border-[#f7816633] text-[#f78166] text-sm px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-[#8b949e] mb-1">
-              Título
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#8b949e] mb-1">
-              Descrição{" "}
-              <span className="text-[#484f58] font-normal">(opcional)</span>
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
-            />
-          </div>
-
-          <LanguageSelect value={language} onChange={setLanguage} />
-
-          <div>
-            <label className="block text-sm font-medium text-[#8b949e] mb-1">
-              Código
-            </label>
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
-              rows={10}
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] font-mono focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent resize-y"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#8b949e] mb-1">
-              Tags{" "}
-              <span className="text-[#484f58] font-normal">
-                (pressione Enter para adicionar)
-              </span>
-            </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-[#1f1d2e] border border-[#d2a8ff44] text-[#d2a8ff] text-xs rounded-lg"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="text-[#d2a8ff88] hover:text-[#d2a8ff]"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
+      <main className="ml-56 p-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-xl font-bold text-[#e6edf3]">Meus Snippets</h1>
+              <p className="text-sm text-[#484f58] mt-1">
+                {snippets.length} snippet{snippets.length !== 1 ? "s" : ""} salvo{snippets.length !== 1 ? "s" : ""}
+              </p>
             </div>
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-              className="w-full px-3 py-2 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
-            />
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-purple-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? "Salvando..." : "Salvar snippet"}
-            </button>
             <Link
-              href="/dashboard"
-              className="px-6 py-2 rounded-lg text-sm text-[#8b949e] border border-[#21262d] hover:bg-[#161b22] transition-colors"
+              href="/dashboard/new"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors"
             >
-              Cancelar
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Novo snippet
             </Link>
           </div>
-        </form>
-      </div>
+
+          <div className="mb-6">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar snippets..."
+              className="w-full px-4 py-2.5 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
+            />
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-6 h-6 border-2 border-[#21262d] border-t-[#d2a8ff] rounded-full animate-spin"></div>
+            </div>
+          ) : snippets.length === 0 ? (
+            <div className="text-center py-20">
+              <svg className="w-12 h-12 text-[#21262d] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              <p className="text-[#484f58] text-sm">Nenhum snippet encontrado</p>
+              <Link
+                href="/dashboard/new"
+                className="inline-block mt-4 text-sm text-[#d2a8ff] hover:underline"
+              >
+                Criar seu primeiro snippet
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {snippets.map((snippet) => (
+                <div
+                  key={snippet.id}
+                  className="bg-[#161b22] border border-[#21262d] rounded-xl p-5 hover:border-[#30363d] transition-colors flex flex-col"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-[#d2a8ff] truncate flex-1 mr-2">
+                      {snippet.title}
+                    </h2>
+                    <span className="text-[10px] text-[#484f58] bg-[#0d1117] border border-[#21262d] px-2 py-1 rounded-md whitespace-nowrap shrink-0">
+                      {snippet.language}
+                    </span>
+                  </div>
+
+                  {snippet.description && (
+                    <p className="text-xs text-white mb-3 line-clamp-2">
+                      {snippet.description}
+                    </p>
+                  )}
+
+                  <div className="flex-1">
+                    <CodeBlock
+                      code={snippet.code}
+                      language={snippet.language.split(",")[0].trim()}
+                      maxHeight="150px"
+                      showCopy={true}
+                    />
+                  </div>
+
+                  {snippet.tags && snippet.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {snippet.tags.map((t) => (
+                        <span
+                          key={t.tag.id}
+                          className="text-[10px] px-2 py-0.5 bg-[#1f1d2e] border border-[#d2a8ff22] text-[#d2a8ff] rounded-full"
+                        >
+                          {t.tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-white mt-3">
+                    {new Date(snippet.updatedAt).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 
@@ -34,8 +35,37 @@ function getColor(language) {
   return languageColors[language] || "bg-purple-400";
 }
 
-export default function Sidebar({ onFilterLanguage, activeLanguage, languages }) {
+export default function Sidebar({ onFilterLanguage, activeLanguage, languages, onReorderLanguages }) {
   const { data: session } = useSession();
+  const [dragIndex, setDragIndex] = useState(null);
+  const [overIndex, setOverIndex] = useState(null);
+  const dragNode = useRef(null);
+
+  function handleDragStart(e, index) {
+    setDragIndex(index);
+    dragNode.current = e.target;
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(e, index) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (index !== overIndex) {
+      setOverIndex(index);
+    }
+  }
+
+  function handleDragEnd() {
+    if (dragIndex !== null && overIndex !== null && dragIndex !== overIndex && onReorderLanguages) {
+      const reordered = [...languages];
+      const [moved] = reordered.splice(dragIndex, 1);
+      reordered.splice(overIndex, 0, moved);
+      onReorderLanguages(reordered);
+    }
+    setDragIndex(null);
+    setOverIndex(null);
+    dragNode.current = null;
+  }
 
   return (
     <aside className="w-56 bg-[#010409] border-r border-[#21262d] h-screen flex flex-col fixed left-0 top-0">
@@ -65,39 +95,43 @@ export default function Sidebar({ onFilterLanguage, activeLanguage, languages })
           Todos os snippets
         </button>
 
-        <Link
-          href="/dashboard/new"
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[#d2a8ff] hover:bg-[#1f1d2e] transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Novo snippet
-        </Link>
-
         {languages.length > 0 && (
           <div className="pt-3">
             <p className="px-3 text-[10px] font-semibold text-[#484f58] uppercase tracking-wider mb-2">
               Linguagens
             </p>
-            {languages.map((lang) => (
-              <button
+            {languages.map((lang, index) => (
+              <div
                 key={lang.language}
-                onClick={() => onFilterLanguage(lang.language)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
-                  activeLanguage === lang.language
-                    ? "bg-[#1f1d2e] text-[#d2a8ff] font-medium"
-                    : "text-[#8b949e] hover:bg-[#161b22]"
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`transition-all ${
+                  dragIndex === index ? "opacity-40" : ""
+                } ${
+                  overIndex === index && dragIndex !== null && dragIndex !== index
+                    ? "border-t-2 border-[#d2a8ff]"
+                    : "border-t-2 border-transparent"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${getColor(lang.language)}`}></span>
-                  {lang.language}
-                </div>
-                <span className="text-[10px] text-[#484f58] bg-[#21262d] px-1.5 py-0.5 rounded-full">
-                  {lang._count.language}
-                </span>
-              </button>
+                <button
+                  onClick={() => onFilterLanguage(lang.language)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors cursor-grab active:cursor-grabbing ${
+                    activeLanguage === lang.language
+                      ? "bg-[#1f1d2e] text-[#d2a8ff] font-medium"
+                      : "text-[#8b949e] hover:bg-[#161b22]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${getColor(lang.language)}`}></span>
+                    {lang.language}
+                  </div>
+                  <span className="text-[10px] text-[#484f58] bg-[#21262d] px-1.5 py-0.5 rounded-full">
+                    {lang._count.language}
+                  </span>
+                </button>
+              </div>
             ))}
           </div>
         )}

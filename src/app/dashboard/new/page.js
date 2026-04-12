@@ -84,11 +84,22 @@ export default function NewSnippetPage() {
   return (
     <div className="min-h-screen bg-[#0d1117]">
       <div className="max-w-2xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-xl font-bold text-[#e6edf3]">Novo snippet</h1>
-          <p className="text-sm text-[#6e7681] mt-1">
-            Salve um trecho de código para consultar depois
-          </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-xl font-bold text-[#e6edf3]">Novo snippet</h1>
+            <p className="text-sm text-[#6e7681] mt-1">
+              Salve um trecho de código para consultar depois
+            </p>
+          </div>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm text-[#8b949e] border border-[#30363d] rounded-lg hover:bg-[#161b22] hover:text-[#e6edf3] transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Voltar
+          </Link>
         </div>
 
         {error && (
@@ -97,6 +108,7 @@ export default function NewSnippetPage() {
           </div>
         )}
 
+        <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
@@ -188,6 +200,7 @@ export default function NewSnippetPage() {
             </Link>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

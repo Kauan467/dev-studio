@@ -26,20 +26,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/snippets/route.js"
     ],
-    "/api/snippets/[id]/route": [
+    "/api/snippets/languages/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/snippets/[id]/route.js"
+      "static/chunks/app/api/snippets/languages/route.js"
     ],
     "/dashboard/new/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/new/page.js"
-    ],
-    "/api/snippets/languages/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/snippets/languages/route.js"
     ]
   }
 }
