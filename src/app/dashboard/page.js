@@ -7,6 +7,35 @@ import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import CodeBlock from "@/components/CodeBlock";
 
+function getLanguageBadge(language) {
+  const colors = {
+    javascript: "bg-[#2d1b00] text-[#f0c14b] border-[#f0c14b44]",
+    typescript: "bg-[#0c1d33] text-[#58a6ff] border-[#58a6ff44]",
+    python: "bg-[#0c2d1b] text-[#3fb950] border-[#3fb95044]",
+    java: "bg-[#2d0c0c] text-[#f78166] border-[#f7816644]",
+    sql: "bg-[#0c1d33] text-[#58a6ff] border-[#58a6ff44]",
+    react: "bg-[#0c2333] text-[#58d5f0] border-[#58d5f044]",
+    nextjs: "bg-[#1c1c1c] text-[#8b949e] border-[#8b949e44]",
+    nodejs: "bg-[#0c2d1b] text-[#3fb950] border-[#3fb95044]",
+    bash: "bg-[#1c1c1c] text-[#8b949e] border-[#8b949e44]",
+    html: "bg-[#2d1500] text-[#f0883e] border-[#f0883e44]",
+    css: "bg-[#0c1d33] text-[#58a6ff] border-[#58a6ff44]",
+    php: "bg-[#1a1033] text-[#a371f7] border-[#a371f744]",
+    docker: "bg-[#0c2333] text-[#58d5f0] border-[#58d5f044]",
+    prisma: "bg-[#1a1033] text-[#a371f7] border-[#a371f744]",
+    go: "bg-[#0c2333] text-[#58d5f0] border-[#58d5f044]",
+    rust: "bg-[#2d1500] text-[#f0883e] border-[#f0883e44]",
+    ruby: "bg-[#2d0c0c] text-[#f78166] border-[#f7816644]",
+    csharp: "bg-[#1a1033] text-[#d2a8ff] border-[#d2a8ff44]",
+    vue: "bg-[#0c2d1b] text-[#3fb950] border-[#3fb95044]",
+    json: "bg-[#1c2d0c] text-[#7ee787] border-[#7ee78744]",
+    yaml: "bg-[#2d0c1a] text-[#f778ba] border-[#f778ba44]",
+    graphql: "bg-[#2d0c1a] text-[#f778ba] border-[#f778ba44]",
+    tailwind: "bg-[#0c2333] text-[#58d5f0] border-[#58d5f044]",
+  };
+  return colors[language] || "bg-[#1a1033] text-[#d2a8ff] border-[#d2a8ff44]";
+}
+
 export default function DashboardPage() {
   const { status } = useSession();
   const router = useRouter();
@@ -135,7 +164,8 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {snippets.map((snippet) => (
-                <div
+                <Link
+                  href={`/dashboard/${snippet.id}`}
                   key={snippet.id}
                   className="bg-[#161b22] border border-[#21262d] rounded-xl p-5 hover:border-[#30363d] transition-colors flex flex-col"
                 >
@@ -143,7 +173,7 @@ export default function DashboardPage() {
                     <h2 className="text-sm font-semibold text-[#d2a8ff] truncate flex-1 mr-2">
                       {snippet.title}
                     </h2>
-                    <span className="text-[10px] text-[#484f58] bg-[#0d1117] border border-[#21262d] px-2 py-1 rounded-md whitespace-nowrap shrink-0">
+                    <span className={`text-[10px] px-2 py-1 rounded-full border whitespace-nowrap shrink-0 font-medium ${getLanguageBadge(snippet.language.split(",")[0].trim())}`}>
                       {snippet.language}
                     </span>
                   </div>
@@ -183,7 +213,7 @@ export default function DashboardPage() {
                       year: "numeric",
                     })}
                   </p>
-                </div>
+                </Link>
               ))}
             </div>
           )}

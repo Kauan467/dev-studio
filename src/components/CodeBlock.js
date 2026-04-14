@@ -35,6 +35,18 @@ const languageMap = {
   tailwind: "css",
 };
 
+const customTheme = {
+  ...oneDark,
+  'pre[class*="language-"]': {
+    ...oneDark['pre[class*="language-"]'],
+    background: "transparent",
+  },
+  'code[class*="language-"]': {
+    ...oneDark['code[class*="language-"]'],
+    background: "transparent",
+  },
+};
+
 export default function CodeBlock({ code, language, maxHeight, showCopy = false }) {
   const [copied, setCopied] = useState(false);
 
@@ -58,7 +70,7 @@ export default function CodeBlock({ code, language, maxHeight, showCopy = false 
       )}
       <SyntaxHighlighter
         language={syntaxLang}
-        style={oneDark}
+        style={customTheme}
         customStyle={{
           margin: 0,
           padding: "12px",
@@ -68,7 +80,7 @@ export default function CodeBlock({ code, language, maxHeight, showCopy = false 
           maxHeight: maxHeight || "none",
           overflow: "hidden",
           background: "#0d1117",
-          border: "1px solid #21262d",
+          border: "none",
         }}
         wrapLongLines={true}
       >
