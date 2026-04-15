@@ -1,5 +1,9 @@
 {
-  "/page": "app/page.js",
+  "/api/snippets/[id]/route": "app/api/snippets/[id]/route.js",
+  "/api/snippets/route": "app/api/snippets/route.js",
+  "/api/snippets/languages/route": "app/api/snippets/languages/route.js",
+  "/login/page": "app/login/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/new/page": "app/dashboard/new/page.js"
+  "/dashboard/[id]/page": "app/dashboard/[id]/page.js",
+  "/dashboard/[id]/edit/page": "app/dashboard/[id]/edit/page.js"
 }
