@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import Logo from "./Logo";
 
 const languageColors = {
   javascript: "bg-amber-400",
@@ -70,13 +71,8 @@ export default function Sidebar({ onFilterLanguage, activeLanguage, languages, o
   return (
     <aside className="w-56 bg-[#010409] border-r border-[#21262d] h-screen flex flex-col fixed left-0 top-0">
       <div className="px-4 py-4 border-b border-[#21262d]">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-purple-600 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-          </div>
-          <span className="text-sm font-bold text-white">Dev Studio</span>
+        <Link href="/dashboard">
+          <Logo size="default" />
         </Link>
       </div>
 

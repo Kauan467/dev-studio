@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -38,13 +39,10 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#0d1117]">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
+          <div className="flex justify-center mb-2">
+            <Logo size="default" />
           </div>
-          <h1 className="text-2xl font-bold text-[#e6edf3]">Dev Studio</h1>
-          <p className="text-sm text-[#484f58] mt-1">
+          <p className="text-sm text-[#484f58]">
             Crie sua conta
           </p>
         </div>
