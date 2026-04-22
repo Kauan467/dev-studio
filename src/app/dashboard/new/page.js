@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LanguageSelect from "@/components/LanguageSelect";
+import CodeEditor from "@/components/CodeEditor";
 
 export default function NewSnippetPage() {
   const { status } = useSession();
@@ -22,11 +23,9 @@ export default function NewSnippetPage() {
     if (e.key === "Enter" || e.key === ",") {
       e.preventDefault();
       const newTag = tagInput.trim().toLowerCase();
-
       if (newTag && !tags.includes(newTag)) {
         setTags([...tags, newTag]);
       }
-
       setTagInput("");
     }
   }
@@ -109,97 +108,96 @@ export default function NewSnippetPage() {
         )}
 
         <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
-              Título
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
-              Descrição{" "}
-              <span className="text-[#6e7681] font-normal">(opcional)</span>
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
-            />
-          </div>
-
-          <LanguageSelect values={languages} onChange={setLanguages} />
-
-          <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
-              Código
-            </label>
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
-              rows={10}
-              className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] font-mono focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent resize-y"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
-              Tags{" "}
-              <span className="text-[#6e7681] font-normal">
-                (pressione Enter para adicionar)
-              </span>
-            </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#1f1d2e] border border-[#d2a8ff44] text-[#d2a8ff] text-xs rounded-lg"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="text-[#d2a8ff88] hover:text-[#d2a8ff]"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
+                Título
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
+              />
             </div>
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-              className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
-            />
-          </div>
 
-          <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-purple-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? "Salvando..." : "Salvar snippet"}
-            </button>
-            <Link
-              href="/dashboard"
-              className="px-6 py-2.5 rounded-lg text-sm text-[#8b949e] border border-[#30363d] hover:bg-[#161b22] hover:text-[#c9d1d9] transition-colors"
-            >
-              Cancelar
-            </Link>
-          </div>
-        </form>
+            <div>
+              <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
+                Descrição{" "}
+                <span className="text-[#6e7681] font-normal">(opcional)</span>
+              </label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
+              />
+            </div>
+
+            <LanguageSelect values={languages} onChange={setLanguages} />
+
+            <div>
+              <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
+                Código
+              </label>
+              <CodeEditor
+                value={code}
+                onChange={setCode}
+                language={languages[0] || "javascript"}
+                minHeight="280px"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#c9d1d9] mb-2">
+                Tags{" "}
+                <span className="text-[#6e7681] font-normal">
+                  (pressione Enter para adicionar)
+                </span>
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#1f1d2e] border border-[#d2a8ff44] text-[#d2a8ff] text-xs rounded-lg"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="text-[#d2a8ff88] hover:text-[#d2a8ff]"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleAddTag}
+                className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-purple-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? "Salvando..." : "Salvar snippet"}
+              </button>
+              <Link
+                href="/dashboard"
+                className="px-6 py-2.5 rounded-lg text-sm text-[#8b949e] border border-[#30363d] hover:bg-[#161b22] hover:text-[#c9d1d9] transition-colors"
+              >
+                Cancelar
+              </Link>
+            </div>
+          </form>
         </div>
       </div>
     </div>

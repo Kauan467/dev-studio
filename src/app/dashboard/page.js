@@ -134,14 +134,27 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="mb-6">
+          {/* ── BUSCA MELHORADA ── */}
+          <div className="mb-6 relative">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#484f58] pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8" strokeWidth={2} />
+              <path d="M21 21l-4.35-4.35" strokeWidth={2} strokeLinecap="round" />
+            </svg>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar snippets..."
-              className="w-full px-4 py-2.5 bg-[#0d1117] border border-[#21262d] rounded-lg text-sm text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent"
+              className="w-full pl-9 pr-16 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent transition-colors hover:border-[#484f58]"
             />
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#484f58] bg-[#161b22] border border-[#30363d] rounded px-1.5 py-0.5 font-sans pointer-events-none">
+              ⌘K
+            </kbd>
           </div>
 
           {loading ? (
@@ -167,24 +180,27 @@ export default function DashboardPage() {
                 <Link
                   href={`/dashboard/${snippet.id}`}
                   key={snippet.id}
-                  className="bg-[#161b22] border border-[#21262d] rounded-xl p-5 hover:border-[#30363d] transition-colors flex flex-col"
+                  className="group bg-[#161b22] border border-[#21262d] rounded-xl p-5 hover:border-[#d2a8ff33] transition-all duration-200 flex flex-col"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <h2 className="text-sm font-semibold text-[#d2a8ff] truncate flex-1 mr-2">
+                    <h2 className="text-sm font-semibold text-[#e6edf3] truncate flex-1 mr-2">
                       {snippet.title}
                     </h2>
-                    <span className={`text-[10px] px-2 py-1 rounded-full border whitespace-nowrap shrink-0 font-medium ${getLanguageBadge(snippet.language.split(",")[0].trim())}`}>
+                    <span
+                      className={`text-[10px] px-2 py-1 rounded-full border whitespace-nowrap shrink-0 font-medium ${getLanguageBadge(
+                        snippet.language.split(",")[0].trim()
+                      )}`}
+                    >
                       {snippet.language}
                     </span>
                   </div>
-
                   {snippet.description && (
-                    <p className="text-xs text-white mb-3 line-clamp-2">
+                    <p className="text-xs text-[#8b949e] mb-3 line-clamp-2 leading-relaxed">
                       {snippet.description}
                     </p>
                   )}
 
-                  <div className="flex-1">
+                  <div className="flex-1 mb-3">
                     <CodeBlock
                       code={snippet.code}
                       language={snippet.language.split(",")[0].trim()}
@@ -193,26 +209,27 @@ export default function DashboardPage() {
                     />
                   </div>
 
-                  {snippet.tags && snippet.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {snippet.tags.map((t) => (
-                        <span
-                          key={t.tag.id}
-                          className="text-[10px] px-2 py-0.5 bg-[#1f1d2e] border border-[#d2a8ff22] text-[#d2a8ff] rounded-full"
-                        >
-                          {t.tag.name}
-                        </span>
-                      ))}
+                  <div className="flex items-center justify-between pt-3 border-t border-[#21262d]">
+                    <div className="flex flex-wrap gap-1.5">
+                      {snippet.tags && snippet.tags.length > 0
+                        ? snippet.tags.map((t) => (
+                            <span
+                              key={t.tag.id}
+                              className="text-[10px] px-2 py-0.5 bg-[#1f1d2e] border border-[#d2a8ff22] text-[#d2a8ff] rounded-full"
+                            >
+                              {t.tag.name}
+                            </span>
+                          ))
+                        : null}
                     </div>
-                  )}
-
-                  <p className="text-[10px] text-white mt-3">
-                    {new Date(snippet.updatedAt).toLocaleDateString("pt-BR", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
+                    <p className="text-[10px] text-[#484f58] shrink-0 ml-2">
+                      {new Date(snippet.updatedAt).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
                 </Link>
               ))}
             </div>

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LanguageSelect from "@/components/LanguageSelect";
+import CodeEditor from "@/components/CodeEditor";
 
 export default function EditSnippetClient({ params }) {
   const { id } = use(params);
@@ -179,12 +180,11 @@ export default function EditSnippetClient({ params }) {
 
             <div>
               <label className="block text-sm font-medium text-[#c9d1d9] mb-2">Código</label>
-              <textarea
+              <CodeEditor
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
-                required
-                rows={10}
-                className="w-full px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] font-mono focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent resize-y"
+                onChange={setCode}
+                language={languages[0] || "javascript"}
+                minHeight="280px"
               />
             </div>
 
