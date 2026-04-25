@@ -2,7 +2,6 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/getSession";
 
-// GET /api/snippets/[id]
 export async function GET(request, { params }) {
   try {
     const { error, session } = await requireAuth();
@@ -51,7 +50,6 @@ export async function GET(request, { params }) {
   }
 }
 
-// PUT /api/snippets/[id]
 export async function PUT(request, { params }) {
   try {
     const { error, session } = await requireAuth();
@@ -128,7 +126,6 @@ export async function PUT(request, { params }) {
   }
 }
 
-// DELETE /api/snippets/[id]
 export async function DELETE(request, { params }) {
   try {
     const { error, session } = await requireAuth();

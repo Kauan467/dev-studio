@@ -45,11 +45,7 @@ export async function POST(request) {
         },
       },
       include: {
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
+        tags: { include: { tag: true } },
       },
     });
 
@@ -78,10 +74,9 @@ export async function GET(request) {
     const search = searchParams.get("search");
     const language = searchParams.get("language");
     const tag = searchParams.get("tag");
+    const favorite = searchParams.get("favorite");
 
-    const where = {
-      userId: session.user.id,
-    };
+    const where = { userId: session.user.id };
 
     if (search) {
       where.OR = [
@@ -96,26 +91,21 @@ export async function GET(request) {
 
     if (tag) {
       where.tags = {
-        some: {
-          tag: {
-            name: tag.toLowerCase(),
-          },
-        },
+        some: { tag: { name: tag.toLowerCase() } },
       };
+    }
+
+    if (favorite === "true") {
+      where.isFavorite = true;
     }
 
     const snippets = await prisma.snippet.findMany({
       where,
       include: {
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
+        tags: { include: { tag: true } },
       },
-      orderBy: {
-        updatedAt: "desc",
-      },
+
+      orderBy: { updatedAt: "desc" },
     });
 
     return NextResponse.json(snippets);

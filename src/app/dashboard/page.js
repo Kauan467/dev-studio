@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -42,59 +42,74 @@ export default function DashboardPage() {
   const [snippets, setSnippets] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [activeLanguage, setActiveLanguage] = useState(null);
+  const [activeFavorite, setActiveFavorite] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [togglingId, setTogglingId] = useState(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-    }
+    if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchSnippets();
-      fetchLanguages();
-    }
-  }, [status, activeLanguage, search]);
-
-  async function fetchSnippets() {
+  
+  const fetchSnippets = useCallback(async ({ language, favorite, searchTerm }) => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (activeLanguage) params.set("language", activeLanguage);
-    if (search) params.set("search", search);
+    if (language) params.set("language", language);
+    if (favorite) params.set("favorite", "true");
+    if (searchTerm) params.set("search", searchTerm);
 
     try {
       const res = await fetch(`/api/snippets?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSnippets(data);
-      }
+      if (res.ok) setSnippets(await res.json());
     } catch (err) {
       console.error("Erro ao buscar snippets:", err);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  async function fetchLanguages() {
+  const fetchLanguages = useCallback(async () => {
     try {
       const res = await fetch("/api/snippets/languages");
-      if (res.ok) {
-        const data = await res.json();
-        setLanguages(data);
-      }
+      if (res.ok) setLanguages(await res.json());
     } catch (err) {
       console.error("Erro ao buscar linguagens:", err);
     }
-  }
+  }, []);
 
-  function handleFilterLanguage(lang) {
-    setActiveLanguage(lang);
-  }
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetchSnippets({ language: activeLanguage, favorite: activeFavorite, searchTerm: search });
+    fetchLanguages();
+  }, [status, activeLanguage, activeFavorite, search, fetchSnippets, fetchLanguages]);
 
-  function handleReorderLanguages(reordered) {
-    setLanguages(reordered);
+  async function handleToggleFavorite(e, snippetId) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (togglingId === snippetId) return;
+
+    setTogglingId(snippetId);
+
+    setSnippets((prev) =>
+      prev.map((s) => s.id === snippetId ? { ...s, isFavorite: !s.isFavorite } : s)
+    );
+
+    try {
+      const res = await fetch(`/api/snippets/${snippetId}/favorite`, { method: "PATCH" });
+      if (!res.ok) throw new Error();
+    } catch {
+
+      setSnippets((prev) =>
+        prev.map((s) => s.id === snippetId ? { ...s, isFavorite: !s.isFavorite } : s)
+      );
+    } finally {
+      setTogglingId(null);
+
+      if (activeFavorite) {
+        fetchSnippets({ language: activeLanguage, favorite: activeFavorite, searchTerm: search });
+      }
+    }
   }
 
   if (status === "loading") {
@@ -108,17 +123,21 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#0d1117]">
       <Sidebar
-        onFilterLanguage={handleFilterLanguage}
+        onFilterLanguage={setActiveLanguage}
         activeLanguage={activeLanguage}
         languages={languages}
-        onReorderLanguages={handleReorderLanguages}
+        onReorderLanguages={setLanguages}
+        onFilterFavorite={setActiveFavorite}
+        activeFavorite={activeFavorite}
       />
 
       <main className="ml-56 p-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-[1600px] mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-xl font-bold text-[#e6edf3]">Meus Snippets</h1>
+              <h1 className="text-xl font-bold text-[#e6edf3]">
+                {activeFavorite ? "Favoritos" : "Meus Snippets"}
+              </h1>
               <p className="text-sm text-[#484f58] mt-1">
                 {snippets.length} snippet{snippets.length !== 1 ? "s" : ""} salvo{snippets.length !== 1 ? "s" : ""}
               </p>
@@ -134,7 +153,6 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* ── BUSCA MELHORADA ── */}
           <div className="mb-6 relative">
             <svg
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#484f58] pointer-events-none"
@@ -164,52 +182,93 @@ export default function DashboardPage() {
           ) : snippets.length === 0 ? (
             <div className="text-center py-20">
               <svg className="w-12 h-12 text-[#21262d] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                {activeFavorite ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                )}
               </svg>
-              <p className="text-[#484f58] text-sm">Nenhum snippet encontrado</p>
-              <Link
-                href="/dashboard/new"
-                className="inline-block mt-4 text-sm text-[#d2a8ff] hover:underline"
-              >
-                Criar seu primeiro snippet
-              </Link>
+              <p className="text-[#484f58] text-sm">
+                {activeFavorite ? "Nenhum snippet favoritado ainda" : "Nenhum snippet encontrado"}
+              </p>
+              {!activeFavorite && (
+                <Link href="/dashboard/new" className="inline-block mt-4 text-sm text-[#d2a8ff] hover:underline">
+                  Criar seu primeiro snippet
+                </Link>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-5">
               {snippets.map((snippet) => (
                 <Link
                   href={`/dashboard/${snippet.id}`}
                   key={snippet.id}
-                  className="group bg-[#161b22] border border-[#21262d] rounded-xl p-5 hover:border-[#d2a8ff33] transition-all duration-200 flex flex-col"
+                  className="group bg-[#161b22] border border-[#21262d] rounded-xl p-5 hover:border-[#d2a8ff33] transition-all duration-200 flex flex-col h-[400px]"
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-2 shrink-0">
                     <h2 className="text-sm font-semibold text-[#e6edf3] truncate flex-1 mr-2">
                       {snippet.title}
                     </h2>
-                    <span
-                      className={`text-[10px] px-2 py-1 rounded-full border whitespace-nowrap shrink-0 font-medium ${getLanguageBadge(
-                        snippet.language.split(",")[0].trim()
-                      )}`}
-                    >
-                      {snippet.language}
-                    </span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={(e) => handleToggleFavorite(e, snippet.id)}
+                        disabled={togglingId === snippet.id}
+                        title={snippet.isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                        className={`p-1 rounded transition-all ${
+                          snippet.isFavorite
+                            ? "text-[#f0c14b]"
+                            : "text-[#484f58] opacity-0 group-hover:opacity-100 hover:text-[#f0c14b]"
+                        }`}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill={snippet.isFavorite ? "currentColor" : "none"}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                          />
+                        </svg>
+                      </button>
+                      <span
+                        className={`text-[10px] px-2 py-1 rounded-full border whitespace-nowrap font-medium ${getLanguageBadge(
+                          snippet.language.split(",")[0].trim()
+                        )}`}
+                      >
+                        {snippet.language}
+                      </span>
+                    </div>
                   </div>
+
                   {snippet.description && (
-                    <p className="text-xs text-[#8b949e] mb-3 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-[#8b949e] mb-2 line-clamp-1 leading-relaxed shrink-0">
                       {snippet.description}
                     </p>
                   )}
 
-                  <div className="flex-1 mb-3">
-                    <CodeBlock
-                      code={snippet.code}
-                      language={snippet.language.split(",")[0].trim()}
-                      maxHeight="150px"
-                      showCopy={true}
-                    />
+                  <div className="flex-1 min-h-0 overflow-hidden rounded-lg mb-3 relative">
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#0d1117] to-transparent z-10 pointer-events-none rounded-b-lg" />
+                    <div
+                      className="h-full overflow-hidden"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      <CodeBlock
+                        code={snippet.code}
+                        language={snippet.language.split(",")[0].trim()}
+                        maxHeight="100%"
+                        showCopy={true}
+                      />
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-3 border-t border-[#21262d]">
+                  <div className="flex items-center justify-between pt-3 border-t border-[#21262d] shrink-0">
                     <div className="flex flex-wrap gap-1.5">
                       {snippet.tags && snippet.tags.length > 0
                         ? snippet.tags.map((t) => (
