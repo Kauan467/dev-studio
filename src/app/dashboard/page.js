@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -36,6 +36,29 @@ function getLanguageBadge(language) {
   return colors[language] || "bg-[#1a1033] text-[#d2a8ff] border-[#d2a8ff44]";
 }
 
+const SORT_OPTIONS = [
+  { value: "recent", label: "Mais recente" },
+  { value: "oldest", label: "Mais antigo" },
+  { value: "az", label: "A-Z" },
+];
+
+function sortSnippets(snippets, sort) {
+  const arr = [...snippets];
+  if (sort === "oldest") return arr.sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt));
+  if (sort === "az") return arr.sort((a, b) => a.title.localeCompare(b.title));
+  return arr.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+}
+
+function buildBackUrl({ search, sort, language, favorite }) {
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  if (sort && sort !== "recent") params.set("sort", sort);
+  if (language) params.set("language", language);
+  if (favorite) params.set("favorite", "true");
+  const qs = params.toString();
+  return qs ? `/dashboard?${qs}` : "/dashboard";
+}
+
 export default function DashboardPage() {
   const { status } = useSession();
   const router = useRouter();
@@ -44,21 +67,34 @@ export default function DashboardPage() {
   const [activeLanguage, setActiveLanguage] = useState(null);
   const [activeFavorite, setActiveFavorite] = useState(false);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("recent");
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState(null);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
-  
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+        searchRef.current?.select();
+      }
+      if (e.key === "Escape") searchRef.current?.blur();
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const fetchSnippets = useCallback(async ({ language, favorite, searchTerm }) => {
     setLoading(true);
     const params = new URLSearchParams();
     if (language) params.set("language", language);
     if (favorite) params.set("favorite", "true");
     if (searchTerm) params.set("search", searchTerm);
-
     try {
       const res = await fetch(`/api/snippets?${params.toString()}`);
       if (res.ok) setSnippets(await res.json());
@@ -88,29 +124,33 @@ export default function DashboardPage() {
     e.preventDefault();
     e.stopPropagation();
     if (togglingId === snippetId) return;
-
     setTogglingId(snippetId);
-
     setSnippets((prev) =>
       prev.map((s) => s.id === snippetId ? { ...s, isFavorite: !s.isFavorite } : s)
     );
-
     try {
       const res = await fetch(`/api/snippets/${snippetId}/favorite`, { method: "PATCH" });
       if (!res.ok) throw new Error();
     } catch {
-
       setSnippets((prev) =>
         prev.map((s) => s.id === snippetId ? { ...s, isFavorite: !s.isFavorite } : s)
       );
     } finally {
       setTogglingId(null);
-
       if (activeFavorite) {
         fetchSnippets({ language: activeLanguage, favorite: activeFavorite, searchTerm: search });
       }
     }
   }
+
+  const sorted = sortSnippets(snippets, sort);
+
+  const backUrl = buildBackUrl({
+    search,
+    sort,
+    language: activeLanguage,
+    favorite: activeFavorite,
+  });
 
   if (status === "loading") {
     return (
@@ -153,33 +193,45 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="mb-6 relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#484f58] pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="mb-6 flex gap-3">
+            <div className="relative flex-1">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#484f58] pointer-events-none"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="11" cy="11" r="8" strokeWidth={2} />
+                <path d="M21 21l-4.35-4.35" strokeWidth={2} strokeLinecap="round" />
+              </svg>
+              <input
+                ref={searchRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar snippets..."
+                className="w-full pl-9 pr-16 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent transition-colors hover:border-[#484f58]"
+              />
+              <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#484f58] bg-[#161b22] border border-[#30363d] rounded px-1.5 py-0.5 font-sans pointer-events-none">
+                ⌘K
+              </kbd>
+            </div>
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="px-3 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent transition-colors hover:border-[#484f58] cursor-pointer"
             >
-              <circle cx="11" cy="11" r="8" strokeWidth={2} />
-              <path d="M21 21l-4.35-4.35" strokeWidth={2} strokeLinecap="round" />
-            </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar snippets..."
-              className="w-full pl-9 pr-16 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-sm text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:ring-2 focus:ring-[#d2a8ff] focus:border-transparent transition-colors hover:border-[#484f58]"
-            />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#484f58] bg-[#161b22] border border-[#30363d] rounded px-1.5 py-0.5 font-sans pointer-events-none">
-              ⌘K
-            </kbd>
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="w-6 h-6 border-2 border-[#21262d] border-t-[#d2a8ff] rounded-full animate-spin"></div>
             </div>
-          ) : snippets.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <div className="text-center py-20">
               <svg className="w-12 h-12 text-[#21262d] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {activeFavorite ? (
@@ -199,9 +251,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-5">
-              {snippets.map((snippet) => (
+              {sorted.map((snippet) => (
                 <Link
-                  href={`/dashboard/${snippet.id}`}
+                  href={`/dashboard/${snippet.id}?back=${encodeURIComponent(backUrl)}`}
                   key={snippet.id}
                   className="group bg-[#161b22] border border-[#21262d] rounded-xl p-5 hover:border-[#d2a8ff33] transition-all duration-200 flex flex-col h-[400px]"
                 >
