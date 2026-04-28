@@ -1,0 +1,40 @@
+<svg width="300" height="160" viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(60, 8)">
+    <!-- tela -->
+    <rect x="10" y="0" width="160" height="100" rx="6" fill="none" stroke="#a78bfa" stroke-width="3.5"/>
+    <!-- barra topo -->
+    <rect x="10" y="0" width="160" height="16" rx="6" fill="#7c3aed"/>
+    <circle cx="22" cy="8" r="3" fill="white" opacity="0.5"/>
+    <circle cx="32" cy="8" r="3" fill="white" opacity="0.5"/>
+    <circle cx="42" cy="8" r="3" fill="white" opacity="0.5"/>
+
+    <!-- linhas de código -->
+    <rect x="22" y="28" width="20" height="5" rx="2" fill="#a78bfa"/>
+    <rect x="46" y="28" width="38" height="5" rx="2" fill="#a78bfa" opacity="0.4"/>
+
+    <rect x="30" y="40" width="14" height="5" rx="2" fill="#a78bfa"/>
+    <rect x="48" y="40" width="28" height="5" rx="2" fill="#a78bfa" opacity="0.4"/>
+    <rect x="80" y="40" width="16" height="5" rx="2" fill="#a78bfa" opacity="0.25"/>
+
+    <rect x="30" y="52" width="10" height="5" rx="2" fill="#a78bfa" opacity="0.4"/>
+    <rect x="44" y="52" width="32" height="5" rx="2" fill="#a78bfa" opacity="0.7"/>
+    <rect x="80" y="52" width="12" height="5" rx="2" fill="#a78bfa" opacity="0.25"/>
+
+    <rect x="30" y="64" width="44" height="5" rx="2" fill="#a78bfa" opacity="0.3"/>
+
+    <rect x="30" y="76" width="14" height="5" rx="2" fill="#a78bfa"/>
+    <rect x="48" y="76" width="24" height="5" rx="2" fill="#a78bfa" opacity="0.4"/>
+
+    <!-- cursor -->
+    <rect x="22" y="88" width="2" height="8" rx="1" fill="#a78bfa" opacity="0.8"/>
+
+    <!-- base -->
+    <rect x="0" y="100" width="180" height="10" rx="4" fill="none" stroke="#a78bfa" stroke-width="3.5"/>
+    <!-- trackpad -->
+    <rect x="72" y="103" width="36" height="5" rx="2" fill="none" stroke="#a78bfa" stroke-width="2" opacity="0.4"/>
+  </g>
+
+  <!-- texto -->
+  <text x="150" y="136" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" font-weight="600" letter-spacing="4" fill="#a78bfa">DEV STUDIO</text>
+  <text x="150" y="153" text-anchor="middle" font-family="Inter, sans-serif" font-size="8" font-weight="400" letter-spacing="1" fill="#9ca3af">seu segundo cérebro de desenvolvedor</text>
+</svg>
